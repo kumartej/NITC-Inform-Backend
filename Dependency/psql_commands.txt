@@ -1,0 +1,5 @@
+sudo -u postgres psql -d template1   // login with postgres::user template1::database
+CREATE USER appuser WITH PASSWORD 'appuser';  //create user
+CREATE DATABASE appuserdb;  //create db
+GRANT ALL PRIVILEGES ON DATABASE appuserdb to appuser;  //grant permissions for appuser to appuserdb database
+psql -d appuserdb -U appuser -h localhost  //login with appuser to database appuserdb with localhost
