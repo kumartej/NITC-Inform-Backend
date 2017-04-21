@@ -39,3 +39,11 @@ module.exports.postEvent = function postEvent(req,res,next){
   	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   	res.json({isValid : true, errmsg : 'NO ERR', data:[]});
 }
+
+module.exports.getCalendarEvents = function getCalendarEvents(req,res,next){
+	console.log(req.query);
+	res.header('Access-Control-Allow-Origin', '*');
+  	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	var retData = util.getCalendarEvents(req.query.id);
+	res.json(retData);
+}

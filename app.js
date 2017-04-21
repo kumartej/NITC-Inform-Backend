@@ -17,6 +17,8 @@ app.get("/nextLevel",routes.getNextLevel);
 
 app.get("/postEvent",routes.postEvent);
 
+app.get("/getCalendarEvents",routes.getCalendarEvents);
+
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");

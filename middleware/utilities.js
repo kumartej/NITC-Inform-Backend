@@ -35,7 +35,7 @@ module.exports.insertPost = function insertPost(snapshot){
 			currentDate = new Date();
 			creationdate = currentDate.toString();
 
-			var data = {highestLevel:"111",postId:dataKey,header:snapData.header, venue:"NotYetDecided", posted_by:snapData.postedBy,post_time:creationdate ,conducted_by:"NotYetDecided",description:snapData.description,img_links:"NotYetDecided",links:"NotYetDecided"};
+			var data = {highestLevel:snapData.postTo,postId:dataKey,header:snapData.header, venue:"NotYetDecided", posted_by:snapData.postedby,post_time:creationdate ,conducted_by:"NotYetDecided",description:snapData.description,img_links:"NotYetDecided",links:"NotYetDecided"};
 			rows = client.querySync('INSERT INTO Post_to (postid, header, venue, posted_by, post_time,conducted_by,description,img_links,links, highest_level) values($1, $2, $3, $4, $5, $6, $7,$8, $9,$10);',[data.postId,data.header,data.venue,data.posted_by,data.post_time,data.conducted_by,data.description,data.img_links,data.links,data.highestLevel]);
 			if (rows.length == 0)
 				return true
@@ -147,11 +147,59 @@ module.exports.postEvent = function postEvent(snap){
 
 	  	// console.log(snapData.header,snapData.venue,snapData.postedBy,snapData.time,snapData.description);
 
-		var data = {highestLevel:snapData.postTo,postId:snapkey,header:snapData.header, venue:snapData.venue, posted_by:snapData.postedBy,post_time:snapData.time ,conducted_by:"NotYetDecided",description:snapData.description,img_links:"NotYetDecided",links:"NotYetDecided"};
-		rows = client.querySync('INSERT INTO Post_to (postid, header, venue, posted_by, post_time,conducted_by,description,img_links,links, highest_level) values($1, $2, $3, $4, $5, $6, $7,$8, $9,$10);',[data.postId,data.header,data.venue,data.posted_by,data.post_time,data.conducted_by,data.description,data.img_links,data.links,data.highestLevel]);
+	  	var eventTime = new Date(snapData.time).toISOString().slice(0, 19).replace('T', ' ');
+	  	console.log(eventTime);
+
+		var data = {eventTime:eventTime, highestLevel:snapData.postTo,postId:snapkey,header:snapData.header, venue:snapData.venue, posted_by:snapData.postedby,post_time:snapData.time ,conducted_by:"NotYetDecided",description:snapData.description,img_links:"NotYetDecided",links:"NotYetDecided"};
+		rows = client.querySync('INSERT INTO Post_to (postid, header, venue, posted_by, post_time,conducted_by,description,img_links,links, highest_level,eventtime) values($1, $2, $3, $4, $5, $6, $7,$8, $9,$10,$11);',[data.postId,data.header,data.venue,data.posted_by,data.post_time,data.conducted_by,data.description,data.img_links,data.links,data.highestLevel,data.eventTime]);
 		return true;
 	}catch(ex){
 		console.log('error','Error in postEvent :: '+ex);
+		return false;
+	}
+}
+
+module.exports.getCalendarEvents = function getCalendarEvents(id){
+	sendReturnData = {isValid : false, errmsg : 'id does not exists', data:[]};
+	try{
+		console.log('info',"Inside getCalendarEvents ::");
+		var connectionString = config.pgConnectionString;
+		var Client = require('pg-native');
+
+		var client = new Client();
+		client.connectSync(connectionString);
+
+		var data = {id:id};
+		if(id=="2"){
+			data = {id1:id,id2:'4',id3:'6',id4:'7'};
+		}else if(id=="3"){
+			data = {id1:id,id2:'5',id3:'6',id4:'7'};
+		}else{
+			data = {id1:id,id2:'4',id3:'5',id4:'7'};
+		}
+		console.log(data);
+
+		var nextDate = new Date(),prevDate = new Date();
+		nextDate.setMonth(nextDate.getMonth() + 6);
+		prevDate.setMonth(prevDate.getMonth() - 6);
+		rows = client.querySync('SELECT header,eventtime FROM Post_to WHERE highest_level=$1 OR highest_level=$2 OR highest_level=$3 OR highest_level=$4;',[data.id1,data.id2,data.id3,data.id4]);
+
+		if (rows.length == 0) {
+			return sendReturnData;
+		}else{
+			sendReturnData.isValid = true;
+			sendReturnData.errmsg = 'NO ERR';
+		 	var temp = new Date();
+		 	 for(var i=0;i<rows.length;i++){
+		 	 	temp = new Date(rows[i].eventtime);
+		 	 	temp.setMinutes(temp.getMinutes()+30);
+		 	 	sendReturnData.data.push({title:rows[i].header,startTime:rows[i].eventtime.toUTCString(),endTime:temp.toUTCString(),allDay:false});
+		 	 }
+			return sendReturnData;
+		}
+
+	}catch(ex){
+		console.log('error','Error in getCalendarEvents ::' +ex);
 		return false;
 	}
 }
